@@ -1,28 +1,10 @@
 #ifndef CAMERA_MODEL_LOADER_H
 #define CAMERA_MODEL_LOADER_H
 
-#include <ros/ros.h>
-#include <sensor_msgs/Image.h>
-#include <image_transport/image_transport.h>
-
-#include <aslam/cameras.hpp>
+#include <camera_model_loader/camera.h>
 
 
 namespace camera_model {
-
-template<typename T>
-std::string vecToString(const std::vector<T>& vec) {
-  std::stringstream ss;
-  ss << "[";
-  for (unsigned int i = 0; i < vec.size(); ++i) {
-    ss << vec[i];
-    if (i != vec.size() -1) {
-      ss << ", ";
-    }
-  }
-  ss << "]";
-  return ss.str();
-}
 
 template<typename T> bool getParam(ros::NodeHandle& nh, const std::string& key, T& var) {
   if (!nh.getParam(key, var)) {
@@ -35,24 +17,6 @@ template<typename T> bool getParam(ros::NodeHandle& nh, const std::string& key, 
 
 using namespace aslam::cameras;
 
-
-struct IntrinsicCalibration {
-  std::string camera_model;
-  std::vector<double> intrinsics;
-  std::string distortion_model;
-  std::vector<double> distortion_coeffs;
-  std::vector<int> resolution;
-};
-
-struct Camera {
-  std::string name;
-  IntrinsicCalibration calibration;
-  sensor_msgs::ImageConstPtr last_image;
-  boost::shared_ptr<aslam::cameras::CameraGeometryBase> camera_model;
-  image_transport::Subscriber sub;
-  std::string frame_id; //overrides header.frame_id if set
-};
-
 class CameraModelLoader {
 public:
   CameraModelLoader();
@@ -63,7 +27,6 @@ public:
 
   const std::map<std::string, Camera>& getCameraMap();
 
-  std::string intrinsicsToString(const IntrinsicCalibration& calibration);
 private:
   void imageCallback(std::string cam_name, const sensor_msgs::ImageConstPtr& image_ptr);
   boost::shared_ptr<CameraGeometryBase> createCameraGeometry(const Camera &cam); // camera geometry factory

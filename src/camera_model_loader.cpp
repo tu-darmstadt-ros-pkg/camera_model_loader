@@ -87,17 +87,6 @@ void CameraModelLoader::imageCallback(std::string cam_name, const sensor_msgs::I
   }
 }
 
-std::string CameraModelLoader::intrinsicsToString(const IntrinsicCalibration& calibration) {
-  std::stringstream ss;
-  ss << "Intrinsic calibration:" << std::endl;
-  ss << " -- Camera model: " << calibration.camera_model << std::endl;
-  ss << " -- Camera coeffs: " << vecToString(calibration.intrinsics) << std::endl;
-  ss << " -- Distortion mode: " << calibration.distortion_model << std::endl;
-  ss << " -- Distortion coeffs: " << vecToString(calibration.distortion_coeffs) << std::endl;
-  ss << " -- Resolution: " << vecToString(calibration.resolution) << std::endl;
-  return ss.str();
-}
-
 const std::map<std::string, Camera>& CameraModelLoader::getCameraMap() {
   return cameras_;
 }
