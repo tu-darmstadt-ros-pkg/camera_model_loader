@@ -17,8 +17,10 @@ Color Camera::worldToColor(const Eigen::Vector3d& point3d, double& confidence) c
       return Color();
     }
     const cv::Mat& img = cv_image->image;
-    Eigen::Vector2i pixel_i(std::round(pixel(0)), std::round(pixel(1)));
-    cv::Vec3b color_vec = img.at<cv::Vec3b>(pixel_i(1), pixel_i(0));
+//    Eigen::Vector2i pixel_i(std::round(pixel(0)), std::round(pixel(1)));
+//    cv::Vec3b color_vec = img.at<cv::Vec3b>(pixel_i(1), pixel_i(0));
+    cv::Point2f pt(pixel(0), pixel(1));
+    cv::Vec3b color_vec = getColorSubpix(img, pt);
     Color c;
     c.r = color_vec[0];
     c.g = color_vec[1];
@@ -33,15 +35,10 @@ Color Camera::worldToColor(const Eigen::Vector3d& point3d, double& confidence) c
   }
 }
 
-std::string intrinsicsToString(const IntrinsicCalibration& calibration) {
-  std::stringstream ss;
-  ss << "Intrinsic calibration:" << std::endl;
-  ss << " -- Camera model: " << calibration.camera_model << std::endl;
-  ss << " -- Camera coeffs: " << vecToString(calibration.intrinsics) << std::endl;
-  ss << " -- Distortion mode: " << calibration.distortion_model << std::endl;
-  ss << " -- Distortion coeffs: " << vecToString(calibration.distortion_coeffs) << std::endl;
-  ss << " -- Resolution: " << vecToString(calibration.resolution) << std::endl;
-  return ss.str();
+cv::Vec3b Camera::getColorSubpix(const cv::Mat& img, cv::Point2f pt) const {
+    cv::Mat patch;
+    cv::getRectSubPix(img, cv::Size(1,1), pt, patch);
+    return patch.at<cv::Vec3b>(0,0);
 }
 
 }

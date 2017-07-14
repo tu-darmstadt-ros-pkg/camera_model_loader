@@ -47,7 +47,7 @@ bool CameraModelLoader::loadCamera(std::string name, ros::NodeHandle &nh) {
   ROS_INFO_STREAM("Found cam: " << cam.name << std::endl
                   << " -- topic: " << rostopic << std::endl
                   << " -- frame_id: " << cam.frame_id << std::endl
-                  << intrinsicsToString(cam.calibration));
+                  << cam.calibration.toString());
   std::pair<std::map<std::string, Camera>::iterator, bool> result = cameras_.emplace(entry);
   if (!result.second) {
     ROS_WARN_STREAM("Couldn't create camera of name '" << cam.name << "' because it already existed.");

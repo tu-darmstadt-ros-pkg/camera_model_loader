@@ -42,11 +42,18 @@ struct IntrinsicCalibration {
   std::string distortion_model;
   std::vector<double> distortion_coeffs;
   std::vector<int> resolution;
+
+  std::string toString() {
+    std::stringstream ss;
+    ss << "Intrinsic calibration:" << std::endl;
+    ss << " -- Camera model: " << camera_model << std::endl;
+    ss << " -- Camera coeffs: " << vecToString(intrinsics) << std::endl;
+    ss << " -- Distortion mode: " << distortion_model << std::endl;
+    ss << " -- Distortion coeffs: " << vecToString(distortion_coeffs) << std::endl;
+    ss << " -- Resolution: " << vecToString(resolution) << std::endl;
+    return ss.str();
+  }
 };
-
-
-std::string intrinsicsToString(const IntrinsicCalibration& calibration);
-
 
 class Camera {
 public:
@@ -59,7 +66,7 @@ public:
 
   Color worldToColor(const Eigen::Vector3d& point3d, double& confidence) const;
 private:
-
+  cv::Vec3b getColorSubpix(const cv::Mat& img, cv::Point2f pt) const;
 };
 
 }
