@@ -13,7 +13,7 @@ Color Camera::worldToColor(const Eigen::Vector3d& point3d, double& confidence) c
     catch(cv_bridge::Exception& e)
     {
       ROS_ERROR_STREAM("Conversion failed: " << e.what());
-      confidence = -1;
+      confidence = INVALID;
       return Color();
     }
     const cv::Mat& img = cv_image->image;
@@ -24,13 +24,11 @@ Color Camera::worldToColor(const Eigen::Vector3d& point3d, double& confidence) c
     c.g = color_vec[1];
     c.b = color_vec[2];
 
-    double dist = std::pow(pixel(0) - img.rows / 2.0, 2) + std::pow(pixel(1) - img.cols / 2.0, 2);
-    confidence = std::exp(-dist);
-
+    confidence = std::pow(pixel(0) - img.rows / 2.0, 2) + std::pow(pixel(1) - img.cols / 2.0, 2);
 
     return c;
   } else {
-    confidence = -1;
+    confidence = INVALID; // kinda hacky?
     return Color();
   }
 }
