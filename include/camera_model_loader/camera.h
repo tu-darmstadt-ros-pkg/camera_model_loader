@@ -65,8 +65,10 @@ public:
   std::string frame_id; //overrides header.frame_id if set
 
   Color worldToColor(const Eigen::Vector3d& point3d, double& confidence) const;
+  double distanceFromCenter(int width, int height, Eigen::Vector2d& pixel) const;
+  bool worldToPixel(const Eigen::Vector3d& point3d, Eigen::Vector2d& pixel_out) const;
 private:
-  cv::Vec3b getColorSubpix(const cv::Mat& img, cv::Point2f pt) const;
+  cv::Vec3b interpolate(const cv::Mat& img, const Eigen::Vector2d &pixel) const;
 };
 
 }
