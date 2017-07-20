@@ -24,33 +24,33 @@ bool CameraModelLoader::loadCamerasFromNamespace(ros::NodeHandle& nh) {
 
 bool CameraModelLoader::loadCamera(std::string name, ros::NodeHandle &nh) {
   Camera cam;
-  cam.name = name;
+  cam.name_ = name;
   std::string rostopic;
   if (!nh.getParam("rostopic", rostopic)) {
     ROS_ERROR_STREAM("Could not get parameter " + nh.getNamespace() + "/rostopic");
     return false;
   }
 
-  nh.param<std::string>("frame_id", cam.frame_id, ""); //overrides image frame_id (optional)
-  bool success = loadCalibration(nh, cam.calibration);
+  nh.param<std::string>("frame_id", cam.frame_id_, ""); //overrides image frame_id (optional)
+  bool success = loadCalibration(nh, cam.calibration_);
   if (!success) {
     ROS_ERROR_STREAM("Could not get intrinsic calibration in ns '" << nh.getNamespace() << "'");
     return false;
   }
-  RadialTangentialDistortion distortion(cam.calibration.distortion_coeffs[0], cam.calibration.distortion_coeffs[1],
-                                        cam.calibration.distortion_coeffs[2], cam.calibration.distortion_coeffs[3]);
-  OmniProjection<RadialTangentialDistortion> projection(cam.calibration.intrinsics[0], cam.calibration.intrinsics[1], cam.calibration.intrinsics[2],
-                                                        cam.calibration.intrinsics[3], cam.calibration.intrinsics[4], cam.calibration.resolution[0],
-                                                        cam.calibration.resolution[1], distortion);
-  cam.camera_model.reset(new CameraGeometry<OmniProjection<RadialTangentialDistortion>, GlobalShutter, NoMask>(projection));
+  RadialTangentialDistortion distortion(cam.calibration_.distortion_coeffs[0], cam.calibration_.distortion_coeffs[1],
+                                        cam.calibration_.distortion_coeffs[2], cam.calibration_.distortion_coeffs[3]);
+  OmniProjection<RadialTangentialDistortion> projection(cam.calibration_.intrinsics[0], cam.calibration_.intrinsics[1], cam.calibration_.intrinsics[2],
+                                                        cam.calibration_.intrinsics[3], cam.calibration_.intrinsics[4], cam.calibration_.resolution[0],
+                                                        cam.calibration_.resolution[1], distortion);
+  cam.camera_model_.reset(new CameraGeometry<OmniProjection<RadialTangentialDistortion>, GlobalShutter, NoMask>(projection));
   std::pair<std::string, Camera> entry(name, cam);
-  ROS_INFO_STREAM("Found cam: " << cam.name << std::endl
+  ROS_INFO_STREAM("Found cam: " << cam.name_ << std::endl
                   << " -- topic: " << rostopic << std::endl
-                  << " -- frame_id: " << cam.frame_id << std::endl
-                  << cam.calibration.toString());
+                  << " -- frame_id: " << cam.frame_id_ << std::endl
+                  << cam.calibration_.toString());
   std::pair<std::map<std::string, Camera>::iterator, bool> result = cameras_.emplace(entry);
   if (!result.second) {
-    ROS_WARN_STREAM("Couldn't create camera of name '" << cam.name << "' because it already existed.");
+    ROS_WARN_STREAM("Couldn't create camera of name '" << cam.name_ << "' because it already existed.");
     return false;
   }
 
@@ -81,7 +81,7 @@ bool CameraModelLoader::loadCalibration(ros::NodeHandle& nh, IntrinsicCalibratio
 
 void CameraModelLoader::imageCallback(std::string cam_name, const sensor_msgs::ImageConstPtr& image_ptr) {
   try {
-    cameras_.at(cam_name).last_image = image_ptr;
+    cameras_.at(cam_name).last_image_ = image_ptr;
   } catch (std::out_of_range) {
     ROS_ERROR_STREAM("Could not find cam " << cam_name << ". This should not have happened. Please contact the maintainer.");
   }

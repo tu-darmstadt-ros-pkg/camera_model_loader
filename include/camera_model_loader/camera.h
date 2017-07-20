@@ -57,18 +57,42 @@ struct IntrinsicCalibration {
 
 class Camera {
 public:
-  std::string name;
-  IntrinsicCalibration calibration;
-  sensor_msgs::ImageConstPtr last_image;
-  boost::shared_ptr<aslam::cameras::CameraGeometryBase> camera_model;
-  image_transport::Subscriber sub;
-  std::string frame_id; //overrides header.frame_id if set
+  Camera();
 
   Color worldToColor(const Eigen::Vector3d& point3d, double& confidence) const;
   double distanceFromCenter(int width, int height, Eigen::Vector2d& pixel) const;
   bool worldToPixel(const Eigen::Vector3d& point3d, Eigen::Vector2d& pixel_out) const;
+
+  std::string getName() const;
+  void setName(const std::string &value);
+
+  IntrinsicCalibration getCalibration() const;
+  void setCalibration(const IntrinsicCalibration &value);
+
+  sensor_msgs::ImageConstPtr getLastImage() const;
+  void setLastImage(const sensor_msgs::ImageConstPtr &value);
+
+  boost::shared_ptr<aslam::cameras::CameraGeometryBase> getCameraModel() const;
+  void setCameraModel(const boost::shared_ptr<aslam::cameras::CameraGeometryBase> &value);
+
+  image_transport::Subscriber getSubscriber() const;
+  void setSubscriber(const image_transport::Subscriber &value);
+
+  std::string getFrameId() const;
+  void setFrameId(const std::string &value);
+
+  cv::Mat getLastImageCV() const;
 private:
   cv::Vec3b interpolate(const cv::Mat& img, const Eigen::Vector2d &pixel) const;
+
+  std::string name_;
+  IntrinsicCalibration calibration_;
+  sensor_msgs::ImageConstPtr last_image_;
+  cv_bridge::CvImageConstPtr cv_last_image_;
+  bool cv_updated_;
+  boost::shared_ptr<aslam::cameras::CameraGeometryBase> camera_model_;
+  image_transport::Subscriber sub_;
+  std::string frame_id_; //overrides header.frame_id if set
 };
 
 }
