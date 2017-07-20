@@ -24,37 +24,39 @@ bool CameraModelLoader::loadCamerasFromNamespace(ros::NodeHandle& nh) {
 
 bool CameraModelLoader::loadCamera(std::string name, ros::NodeHandle &nh) {
   Camera cam;
-  cam.name_ = name;
+  cam.setName(name);
   std::string rostopic;
   if (!nh.getParam("rostopic", rostopic)) {
     ROS_ERROR_STREAM("Could not get parameter " + nh.getNamespace() + "/rostopic");
     return false;
   }
 
-  nh.param<std::string>("frame_id", cam.frame_id_, ""); //overrides image frame_id (optional)
-  bool success = loadCalibration(nh, cam.calibration_);
+  cam.setFrameId(nh.param<std::string>("frame_id", "")); //overrides image frame_id (optional)
+  IntrinsicCalibration calibration;
+  bool success = loadCalibration(nh, calibration);
+  cam.setCalibration(calibration);
   if (!success) {
     ROS_ERROR_STREAM("Could not get intrinsic calibration in ns '" << nh.getNamespace() << "'");
     return false;
   }
-  RadialTangentialDistortion distortion(cam.calibration_.distortion_coeffs[0], cam.calibration_.distortion_coeffs[1],
-                                        cam.calibration_.distortion_coeffs[2], cam.calibration_.distortion_coeffs[3]);
-  OmniProjection<RadialTangentialDistortion> projection(cam.calibration_.intrinsics[0], cam.calibration_.intrinsics[1], cam.calibration_.intrinsics[2],
-                                                        cam.calibration_.intrinsics[3], cam.calibration_.intrinsics[4], cam.calibration_.resolution[0],
-                                                        cam.calibration_.resolution[1], distortion);
-  cam.camera_model_.reset(new CameraGeometry<OmniProjection<RadialTangentialDistortion>, GlobalShutter, NoMask>(projection));
+  RadialTangentialDistortion distortion(cam.getCalibration().distortion_coeffs[0], cam.getCalibration().distortion_coeffs[1],
+                                        cam.getCalibration().distortion_coeffs[2], cam.getCalibration().distortion_coeffs[3]);
+  OmniProjection<RadialTangentialDistortion> projection(cam.getCalibration().intrinsics[0], cam.getCalibration().intrinsics[1], cam.getCalibration().intrinsics[2],
+                                                        cam.getCalibration().intrinsics[3], cam.getCalibration().intrinsics[4], cam.getCalibration().resolution[0],
+                                                        cam.getCalibration().resolution[1], distortion);
+  cam.setCameraModel(boost::make_shared<CameraGeometry<OmniProjection<RadialTangentialDistortion>, GlobalShutter, NoMask>>(projection));
   std::pair<std::string, Camera> entry(name, cam);
-  ROS_INFO_STREAM("Found cam: " << cam.name_ << std::endl
+  ROS_INFO_STREAM("Found cam: " << cam.getName() << std::endl
                   << " -- topic: " << rostopic << std::endl
-                  << " -- frame_id: " << cam.frame_id_ << std::endl
-                  << cam.calibration_.toString());
+                  << " -- frame_id: " << cam.getFrameId() << std::endl
+                  << cam.getCalibration().toString());
   std::pair<std::map<std::string, Camera>::iterator, bool> result = cameras_.emplace(entry);
   if (!result.second) {
-    ROS_WARN_STREAM("Couldn't create camera of name '" << cam.name_ << "' because it already existed.");
+    ROS_WARN_STREAM("Couldn't create camera of name '" << cam.getName() << "' because it already existed.");
     return false;
   }
 
-  result.first->second.sub = it_->subscribe(rostopic, 1, boost::bind(&CameraModelLoader::imageCallback, this, name, _1));
+  result.first->second.setSubscriber(it_->subscribe(rostopic, 1, boost::bind(&CameraModelLoader::imageCallback, this, name, _1)));
   return true;
 }
 
@@ -81,13 +83,13 @@ bool CameraModelLoader::loadCalibration(ros::NodeHandle& nh, IntrinsicCalibratio
 
 void CameraModelLoader::imageCallback(std::string cam_name, const sensor_msgs::ImageConstPtr& image_ptr) {
   try {
-    cameras_.at(cam_name).last_image_ = image_ptr;
+    cameras_.at(cam_name).setLastImage(image_ptr);
   } catch (std::out_of_range) {
     ROS_ERROR_STREAM("Could not find cam " << cam_name << ". This should not have happened. Please contact the maintainer.");
   }
 }
 
-const std::map<std::string, Camera>& CameraModelLoader::getCameraMap() {
+std::map<std::string, Camera>& CameraModelLoader::getCameraMap() {
   return cameras_;
 }
 

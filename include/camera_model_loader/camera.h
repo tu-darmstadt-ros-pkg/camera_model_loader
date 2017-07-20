@@ -59,7 +59,7 @@ class Camera {
 public:
   Camera();
 
-  Color worldToColor(const Eigen::Vector3d& point3d, double& confidence) const;
+  Color worldToColor(const Eigen::Vector3d& point3d, double& confidence);
   double distanceFromCenter(int width, int height, Eigen::Vector2d& pixel) const;
   bool worldToPixel(const Eigen::Vector3d& point3d, Eigen::Vector2d& pixel_out) const;
 
@@ -81,7 +81,7 @@ public:
   std::string getFrameId() const;
   void setFrameId(const std::string &value);
 
-  cv::Mat getLastImageCV() const;
+  cv::Mat getLastImageCV();
 private:
   cv::Vec3b interpolate(const cv::Mat& img, const Eigen::Vector2d &pixel) const;
 

@@ -22,7 +22,7 @@ double Camera::distanceFromCenter(int width, int height, Eigen::Vector2d& pixel)
   return std::pow(pixel(0) - width / 2.0, 2) + std::pow(pixel(1) - height / 2.0, 2);
 }
 
-Color Camera::worldToColor(const Eigen::Vector3d& point3d, double& confidence) const {
+Color Camera::worldToColor(const Eigen::Vector3d& point3d, double& confidence) {
   Eigen::Vector2d pixel(2);
   if (worldToPixel(point3d, pixel)) {
 
@@ -44,8 +44,7 @@ cv::Vec3b Camera::interpolate(const cv::Mat& img, const Eigen::Vector2d& pixel) 
   return patch.at<cv::Vec3b>(0,0);
 }
 
-cv::Mat Camera::getLastImageCV() const
-{
+cv::Mat Camera::getLastImageCV() {
   if (!cv_updated_) {
     try
     {
@@ -62,64 +61,52 @@ cv::Mat Camera::getLastImageCV() const
   return cv_last_image_->image;
 }
 
-std::string Camera::getFrameId() const
-{
+std::string Camera::getFrameId() const {
   return frame_id_;
 }
 
-void Camera::setFrameId(const std::string &value)
-{
+void Camera::setFrameId(const std::string &value) {
   frame_id_ = value;
 }
 
-image_transport::Subscriber Camera::getSubscriber() const
-{
+image_transport::Subscriber Camera::getSubscriber() const {
   return sub_;
 }
 
-void Camera::setSubscriber(const image_transport::Subscriber &value)
-{
+void Camera::setSubscriber(const image_transport::Subscriber &value) {
   sub_ = value;
 }
 
-boost::shared_ptr<aslam::cameras::CameraGeometryBase> Camera::getCameraModel() const
-{
+boost::shared_ptr<aslam::cameras::CameraGeometryBase> Camera::getCameraModel() const {
   return camera_model_;
 }
 
-void Camera::setCameraModel(const boost::shared_ptr<aslam::cameras::CameraGeometryBase> &value)
-{
+void Camera::setCameraModel(const boost::shared_ptr<aslam::cameras::CameraGeometryBase> &value) {
   camera_model_ = value;
 }
 
-sensor_msgs::ImageConstPtr Camera::getLastImage() const
-{
+sensor_msgs::ImageConstPtr Camera::getLastImage() const {
   return last_image_;
 }
 
-void Camera::setLastImage(const sensor_msgs::ImageConstPtr &value)
-{
+void Camera::setLastImage(const sensor_msgs::ImageConstPtr &value) {
   cv_updated_ = false;
   last_image_ = value;
 }
 
-IntrinsicCalibration Camera::getCalibration() const
-{
+IntrinsicCalibration Camera::getCalibration() const {
   return calibration_;
 }
 
-void Camera::setCalibration(const IntrinsicCalibration &value)
-{
+void Camera::setCalibration(const IntrinsicCalibration &value) {
   calibration_ = value;
 }
 
-std::string Camera::getName() const
-{
+std::string Camera::getName() const {
   return name_;
 }
 
-void Camera::setName(const std::string &value)
-{
+void Camera::setName(const std::string &value) {
   name_ = value;
 }
 

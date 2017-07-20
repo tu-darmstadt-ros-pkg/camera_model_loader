@@ -25,7 +25,7 @@ public:
   bool loadCamera(std::string name , ros::NodeHandle &nh);
   bool loadCalibration(ros::NodeHandle &nh, IntrinsicCalibration &calibration);
 
-  const std::map<std::string, Camera>& getCameraMap();
+  std::map<std::string, Camera> &getCameraMap();
 
 private:
   void imageCallback(std::string cam_name, const sensor_msgs::ImageConstPtr& image_ptr);
