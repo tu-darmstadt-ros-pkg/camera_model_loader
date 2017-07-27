@@ -30,6 +30,7 @@ bool CameraModelLoader::loadCamera(std::string name, ros::NodeHandle &nh) {
     ROS_ERROR_STREAM("Could not get parameter " + nh.getNamespace() + "/rostopic");
     return false;
   }
+  cam.setRostopic(rostopic);
 
   cam.setFrameId(nh.param<std::string>("frame_id", "")); //overrides image frame_id (optional)
   IntrinsicCalibration calibration;
@@ -56,8 +57,22 @@ bool CameraModelLoader::loadCamera(std::string name, ros::NodeHandle &nh) {
     return false;
   }
 
-  result.first->second.setSubscriber(it_->subscribe(rostopic, 1, boost::bind(&CameraModelLoader::imageCallback, this, name, _1)));
+  //result.first->second.setSubscriber(it_->subscribe(rostopic, 1, boost::bind(&CameraModelLoader::imageCallback, this, name, _1)));
   return true;
+}
+
+void CameraModelLoader::startSubscribers() {
+  for (std::map<std::string, camera_model::Camera>::iterator c = getCameraMap().begin(); c != getCameraMap().end(); ++c) {
+    if (!c->second.getSubscriber()) {
+      c->second.setSubscriber(it_->subscribe(c->second.getRostopic(), 1, boost::bind(&CameraModelLoader::imageCallback, this, c->second.getName(), _1)));
+    }
+  }
+}
+
+void CameraModelLoader::shutdownSubscribers() {
+  for (std::map<std::string, camera_model::Camera>::iterator c = getCameraMap().begin(); c != getCameraMap().end(); ++c) {
+    c->second.shutdownSubscriber();
+  }
 }
 
 bool CameraModelLoader::loadCalibration(ros::NodeHandle& nh, IntrinsicCalibration& calibration) {

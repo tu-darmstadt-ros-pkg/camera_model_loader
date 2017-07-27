@@ -44,6 +44,20 @@ cv::Vec3b Camera::interpolate(const cv::Mat& img, const Eigen::Vector2d& pixel) 
   return patch.at<cv::Vec3b>(0,0);
 }
 
+void Camera::shutdownSubscriber() {
+  sub_.shutdown();
+}
+
+std::string Camera::getRostopic() const
+{
+  return rostopic_;
+}
+
+void Camera::setRostopic(const std::string &rostopic)
+{
+  rostopic_ = rostopic;
+}
+
 cv::Mat Camera::getLastImageCV() {
   if (!cv_updated_) {
     try

@@ -25,6 +25,9 @@ public:
   bool loadCamera(std::string name , ros::NodeHandle &nh);
   bool loadCalibration(ros::NodeHandle &nh, IntrinsicCalibration &calibration);
 
+  void startSubscribers();
+  void shutdownSubscribers();
+
   std::map<std::string, Camera> &getCameraMap();
 
 private:

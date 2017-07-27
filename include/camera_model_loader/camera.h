@@ -63,6 +63,8 @@ public:
   double distanceFromCenter(int width, int height, Eigen::Vector2d& pixel) const;
   bool worldToPixel(const Eigen::Vector3d& point3d, Eigen::Vector2d& pixel_out) const;
 
+  void shutdownSubscriber();
+
   std::string getName() const;
   void setName(const std::string &value);
 
@@ -82,6 +84,9 @@ public:
   void setFrameId(const std::string &value);
 
   cv::Mat getLastImageCV();
+  std::string getRostopic() const;
+  void setRostopic(const std::string &rostopic);
+
 private:
   cv::Vec3b interpolate(const cv::Mat& img, const Eigen::Vector2d &pixel) const;
 
@@ -92,6 +97,7 @@ private:
   bool cv_updated_;
   boost::shared_ptr<aslam::cameras::CameraGeometryBase> camera_model_;
   image_transport::Subscriber sub_;
+  std::string rostopic_;
   std::string frame_id_; //overrides header.frame_id if set
 };
 
