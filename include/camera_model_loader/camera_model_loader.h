@@ -21,16 +21,16 @@ class CameraModelLoader {
 public:
   CameraModelLoader();
   bool loadCamerasFromNamespace(ros::NodeHandle &nh);
-//    void addCamera(std::string name, std::string topic, std::string frame_id, const IntrinsicCalibration& calibration);
-  bool loadCamera(std::string name , ros::NodeHandle &nh);
-  bool loadCalibration(ros::NodeHandle &nh, IntrinsicCalibration &calibration);
 
   void startSubscribers();
   void shutdownSubscribers();
 
   std::map<std::string, Camera> &getCameraMap();
+  const Camera& getCamera(std::string name) const;
 
 private:
+  bool loadCamera(std::string name , ros::NodeHandle &nh);
+  bool loadCalibration(ros::NodeHandle &nh, IntrinsicCalibration &calibration);
   void imageCallback(std::string cam_name, const sensor_msgs::ImageConstPtr& image_ptr);
   boost::shared_ptr<CameraGeometryBase> createCameraGeometry(const Camera &cam); // camera geometry factory
 

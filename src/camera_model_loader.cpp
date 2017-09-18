@@ -108,4 +108,8 @@ std::map<std::string, Camera>& CameraModelLoader::getCameraMap() {
   return cameras_;
 }
 
+const Camera& CameraModelLoader::getCamera(std::string name) const{
+  return cameras_.at(name);
+}
+
 }
