@@ -4,7 +4,10 @@
 #include <ros/ros.h>
 
 #include <Eigen/Eigen>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <cv_bridge/cv_bridge.h>
+#pragma GCC diagnostic pop
 
 #include <aslam/cameras.hpp>
 
