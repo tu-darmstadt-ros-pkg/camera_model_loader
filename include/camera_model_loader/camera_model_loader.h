@@ -37,6 +37,7 @@ private:
   std::map<std::string, Camera> cameras_;
   boost::shared_ptr<image_transport::ImageTransport> it_;
   ros::NodeHandle nh_;
+  std::string mask_path_;
 };
 
 }

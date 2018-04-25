@@ -1,5 +1,7 @@
 #include <camera_model_loader/camera_model_loader.h>
 
+#include <opencv2/highgui.hpp>
+
 namespace camera_model {
 
 CameraModelLoader::CameraModelLoader()
@@ -11,6 +13,7 @@ bool CameraModelLoader::loadCamerasFromNamespace(ros::NodeHandle& nh) {
   ROS_INFO_STREAM("Loading parameters from namespace " << nh.getNamespace() + "/cameras");
   XmlRpc::XmlRpcValue cams;
   nh.getParam("cameras", cams);
+  nh.getParam("mask_path", mask_path_);
   ROS_ASSERT(cams.getType() == XmlRpc::XmlRpcValue::TypeStruct);
   for(XmlRpc::XmlRpcValue::ValueStruct::const_iterator it = cams.begin(); it != cams.end(); ++it) {
     std::string cam_name = (std::string)(it->first);
@@ -45,7 +48,18 @@ bool CameraModelLoader::loadCamera(std::string name, ros::NodeHandle &nh) {
   OmniProjection<RadialTangentialDistortion> projection(cam.getCalibration().intrinsics[0], cam.getCalibration().intrinsics[1], cam.getCalibration().intrinsics[2],
                                                         cam.getCalibration().intrinsics[3], cam.getCalibration().intrinsics[4], cam.getCalibration().resolution[0],
                                                         cam.getCalibration().resolution[1], distortion);
-  cam.setCameraModel(boost::make_shared<CameraGeometry<OmniProjection<RadialTangentialDistortion>, GlobalShutter, NoMask>>(projection));
+  std::string mask_filename;
+  cv::Mat mask;
+  if (nh.getParam("mask", mask_filename)) {
+    std::string full_mask_path = mask_path_ + "/" + mask_filename;
+    mask = cv::imread(full_mask_path, cv::IMREAD_GRAYSCALE);
+    if (mask.empty()) {
+      ROS_WARN_STREAM("Failed to load mask from '" << full_mask_path << "'.");
+    }
+  }
+  ImageMask image_mask(mask);
+  GlobalShutter global_shutter;
+  cam.setCameraModel(boost::make_shared<CameraGeometry<OmniProjection<RadialTangentialDistortion>, GlobalShutter, ImageMask>>(projection, global_shutter, image_mask));
   std::pair<std::string, Camera> entry(name, cam);
   ROS_INFO_STREAM("Found cam: " << cam.getName() << std::endl
                   << " -- topic: " << rostopic << std::endl
