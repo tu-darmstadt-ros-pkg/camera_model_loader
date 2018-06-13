@@ -22,6 +22,9 @@ bool CameraModelLoader::loadCamerasFromNamespace(ros::NodeHandle& nh) {
       return false;
     }
   }
+  if (cameras_.empty()) {
+    ROS_WARN_STREAM("No cameras loaded!");
+  }
   return true;
 }
 
