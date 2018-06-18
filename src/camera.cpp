@@ -62,7 +62,7 @@ cv::Mat Camera::getLastImageCV() {
   if (!cv_updated_) {
     try
     {
-      cv_last_image_ = cv_bridge::toCvShare(getLastImage());
+      cv_last_image_ = cv_bridge::toCvShare(getLastImage(), "rgb8");
     }
     catch(cv_bridge::Exception& e)
     {
