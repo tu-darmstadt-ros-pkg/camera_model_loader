@@ -36,7 +36,7 @@ struct Color {
   Color(uint8_t _r, uint8_t _g, uint8_t _b)
     : r(_r), g(_g), b(_b) {}
 
-  double r, g, b;
+  uint8_t r, g, b;
 };
 
 struct IntrinsicCalibration {
