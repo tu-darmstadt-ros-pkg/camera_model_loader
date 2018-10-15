@@ -19,7 +19,7 @@ double Camera::distanceFromCenter(int width, int height, Eigen::Vector2d& pixel)
   return std::pow(pixel(0) - width / 2.0, 2) + std::pow(pixel(1) - height / 2.0, 2);
 }
 
-Color Camera::worldToColor(const Eigen::Vector3d& point3d, double& confidence) {
+Color Camera::worldToColor(const Eigen::Vector3d& point3d, double& confidence) const {
   Eigen::Vector2d pixel(2);
   if (worldToPixel(point3d, pixel)) {
     const cv::Mat& img = getLastImageCV();

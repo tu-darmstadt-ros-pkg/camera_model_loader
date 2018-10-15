@@ -62,7 +62,7 @@ class Camera {
 public:
   Camera();
 
-  Color worldToColor(const Eigen::Vector3d& point3d, double& confidence);
+  Color worldToColor(const Eigen::Vector3d& point3d, double& confidence) const;
   double distanceFromCenter(int width, int height, Eigen::Vector2d& pixel) const;
   bool worldToPixel(const Eigen::Vector3d& point3d, Eigen::Vector2d& pixel_out) const;
 
