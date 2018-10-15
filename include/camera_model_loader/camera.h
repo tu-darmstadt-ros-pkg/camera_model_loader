@@ -86,7 +86,7 @@ public:
   std::string getFrameId() const;
   void setFrameId(const std::string &value);
 
-  cv::Mat getLastImageCV();
+  cv::Mat getLastImageCV() const;
   std::string getRostopic() const;
   void setRostopic(const std::string &rostopic);
 
@@ -97,7 +97,6 @@ private:
   IntrinsicCalibration calibration_;
   sensor_msgs::ImageConstPtr last_image_;
   cv_bridge::CvImageConstPtr cv_last_image_;
-  bool cv_updated_;
   boost::shared_ptr<aslam::cameras::CameraGeometryBase> camera_model_;
   image_transport::Subscriber sub_;
   std::string rostopic_;
