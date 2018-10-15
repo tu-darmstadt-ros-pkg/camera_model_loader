@@ -16,7 +16,7 @@ bool CameraModelLoader::loadCamerasFromNamespace(ros::NodeHandle& nh) {
   nh.getParam("mask_path", mask_path_);
   ROS_ASSERT(cams.getType() == XmlRpc::XmlRpcValue::TypeStruct);
   for(XmlRpc::XmlRpcValue::ValueStruct::const_iterator it = cams.begin(); it != cams.end(); ++it) {
-    std::string cam_name = (std::string)(it->first);
+    std::string cam_name = it->first;
     ros::NodeHandle cam_nh(nh, "cameras/" + cam_name);
     if (!loadCamera(cam_name, cam_nh)) {
       return false;
@@ -64,10 +64,15 @@ bool CameraModelLoader::loadCamera(std::string name, ros::NodeHandle &nh) {
   GlobalShutter global_shutter;
   cam.setCameraModel(boost::make_shared<CameraGeometry<OmniProjection<RadialTangentialDistortion>, GlobalShutter, ImageMask>>(projection, global_shutter, image_mask));
   std::pair<std::string, Camera> entry(name, cam);
-  ROS_INFO_STREAM("Found cam: " << cam.getName() << std::endl
-                  << " -- topic: " << rostopic << std::endl
-                  << " -- frame_id: " << cam.getFrameId() << std::endl
-                  << cam.getCalibration().toString());
+  std::stringstream debug_ss;
+  debug_ss << "Found cam: " << cam.getName() << std::endl;
+  debug_ss << " -- topic: " << rostopic << std::endl;
+  debug_ss << " -- frame_id: " << cam.getFrameId() << std::endl;
+  if (!mask.empty()) {
+    debug_ss << " -- mask: " << mask_filename << std::endl;
+  }
+  debug_ss << cam.getCalibration().toString();
+  ROS_INFO_STREAM(debug_ss.str());
   std::pair<std::map<std::string, Camera>::iterator, bool> result = cameras_.emplace(entry);
   if (!result.second) {
     ROS_WARN_STREAM("Couldn't create camera of name '" << cam.getName() << "' because it already existed.");
@@ -79,7 +84,7 @@ bool CameraModelLoader::loadCamera(std::string name, ros::NodeHandle &nh) {
 }
 
 void CameraModelLoader::startSubscribers() {
-  for (std::map<std::string, camera_model::Camera>::iterator c = getCameraMap().begin(); c != getCameraMap().end(); ++c) {
+  for (std::map<std::string, camera_model::Camera>::iterator c = cameras_.begin(); c != cameras_.end(); ++c) {
     if (!c->second.getSubscriber()) {
       c->second.setSubscriber(it_->subscribe(c->second.getRostopic(), 1, boost::bind(&CameraModelLoader::imageCallback, this, c->second.getName(), _1)));
     }
@@ -87,7 +92,7 @@ void CameraModelLoader::startSubscribers() {
 }
 
 void CameraModelLoader::shutdownSubscribers() {
-  for (std::map<std::string, camera_model::Camera>::iterator c = getCameraMap().begin(); c != getCameraMap().end(); ++c) {
+  for (std::map<std::string, camera_model::Camera>::iterator c = cameras_.begin(); c != cameras_.end(); ++c) {
     c->second.shutdownSubscriber();
   }
 }
@@ -121,12 +126,42 @@ void CameraModelLoader::imageCallback(std::string cam_name, const sensor_msgs::I
   }
 }
 
-std::map<std::string, Camera>& CameraModelLoader::getCameraMap() {
+const std::map<std::string, Camera>& CameraModelLoader::getCameraMap() const{
   return cameras_;
 }
 
 const Camera& CameraModelLoader::getCamera(std::string name) const{
   return cameras_.at(name);
+}
+
+bool CameraModelLoader::waitForImages(const ros::Duration timeout)
+{
+  ros::Time start = ros::Time::now();
+  ros::Rate rate(10);
+  bool received_images = false;
+  while (!received_images) {
+    // Check timeout
+    ros::Duration elapsed_time = ros::Time::now() - start;
+    if (timeout.toSec() != 0.0 &&  elapsed_time > timeout) {
+      continue;
+    }
+    // Check for images
+    ros::spinOnce();
+    received_images = receivedImages();
+    rate.sleep();
+  }
+  return received_images;
+}
+
+bool CameraModelLoader::receivedImages()
+{
+  for (const std::pair<std::string, Camera>& name_camera_pair: cameras_) {
+    const Camera& c = name_camera_pair.second;
+    if (!c.getLastImage()) {
+      return false;
+    }
+  }
+  return true;
 }
 
 }

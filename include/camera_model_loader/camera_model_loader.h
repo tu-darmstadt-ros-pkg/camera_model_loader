@@ -25,8 +25,11 @@ public:
   void startSubscribers();
   void shutdownSubscribers();
 
-  std::map<std::string, Camera> &getCameraMap();
+  const std::map<std::string, Camera> &getCameraMap() const;
   const Camera& getCamera(std::string name) const;
+
+  bool waitForImages(const ros::Duration timeout = ros::Duration(0));
+  bool receivedImages();
 
 private:
   bool loadCamera(std::string name , ros::NodeHandle &nh);

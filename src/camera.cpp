@@ -2,10 +2,7 @@
 
 namespace camera_model {
 
-Camera::Camera()
-  : cv_updated_(false) {
-
-}
+Camera::Camera() {}
 
 bool Camera::worldToPixel(const Eigen::Vector3d& point3d, Eigen::Vector2d& pixel_out) const {
   Eigen::VectorXd pixel(2);
@@ -25,8 +22,6 @@ double Camera::distanceFromCenter(int width, int height, Eigen::Vector2d& pixel)
 Color Camera::worldToColor(const Eigen::Vector3d& point3d, double& confidence) {
   Eigen::Vector2d pixel(2);
   if (worldToPixel(point3d, pixel)) {
-
-
     const cv::Mat& img = getLastImageCV();
     cv::Vec3b color_vec = interpolate(img, pixel);
     confidence = distanceFromCenter(img.cols, img.rows, pixel);
@@ -38,7 +33,7 @@ Color Camera::worldToColor(const Eigen::Vector3d& point3d, double& confidence) {
 }
 
 cv::Vec3b Camera::interpolate(const cv::Mat& img, const Eigen::Vector2d& pixel) const {
-  cv::Point2f pt(pixel(0), pixel(1));
+  cv::Point2f pt(static_cast<float>(pixel(0)), static_cast<float>(pixel(1)));
   cv::Mat patch;
   cv::getRectSubPix(img, cv::Size(1,1), pt, patch);
   return patch.at<cv::Vec3b>(0,0);
@@ -58,21 +53,17 @@ void Camera::setRostopic(const std::string &rostopic)
   rostopic_ = rostopic;
 }
 
-cv::Mat Camera::getLastImageCV() {
-  if (!cv_updated_) {
-    try
-    {
-      cv_last_image_ = cv_bridge::toCvShare(getLastImage(), "rgb8");
-    }
-    catch(cv_bridge::Exception& e)
-    {
-      ROS_ERROR_STREAM("CV Bridge conversion failed: " << e.what());
-      return cv::Mat();
-    }
-    cv_updated_ = true;
+cv::Mat Camera::getLastImageCV() const {
+  try
+  {
+    cv_bridge::CvImageConstPtr image = cv_bridge::toCvShare(getLastImage(), "rgb8");
+    return image->image;
   }
-
-  return cv_last_image_->image;
+  catch(cv_bridge::Exception& e)
+  {
+    ROS_ERROR_STREAM("CV Bridge conversion failed: " << e.what());
+    return cv::Mat();
+  }
 }
 
 std::string Camera::getFrameId() const {
@@ -104,7 +95,6 @@ sensor_msgs::ImageConstPtr Camera::getLastImage() const {
 }
 
 void Camera::setLastImage(const sensor_msgs::ImageConstPtr &value) {
-  cv_updated_ = false;
   last_image_ = value;
 }
 
