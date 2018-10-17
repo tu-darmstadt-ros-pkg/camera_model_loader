@@ -54,16 +54,7 @@ void Camera::setRostopic(const std::string &rostopic)
 }
 
 cv::Mat Camera::getLastImageCV() const {
-  try
-  {
-    cv_bridge::CvImageConstPtr image = cv_bridge::toCvShare(getLastImage(), "rgb8");
-    return image->image;
-  }
-  catch(cv_bridge::Exception& e)
-  {
-    ROS_ERROR_STREAM("CV Bridge conversion failed: " << e.what());
-    return cv::Mat();
-  }
+  return cv_last_image_->image;
 }
 
 std::string Camera::getFrameId() const {
@@ -96,6 +87,14 @@ sensor_msgs::ImageConstPtr Camera::getLastImage() const {
 
 void Camera::setLastImage(const sensor_msgs::ImageConstPtr &value) {
   last_image_ = value;
+  try
+  {
+    cv_last_image_ = cv_bridge::toCvCopy(getLastImage(), "rgb8");
+  }
+  catch(cv_bridge::Exception& e)
+  {
+    ROS_ERROR_STREAM("CV Bridge conversion failed: " << e.what());
+  }
 }
 
 IntrinsicCalibration Camera::getCalibration() const {
